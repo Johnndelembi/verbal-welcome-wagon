@@ -1,14 +1,11 @@
-
-import { useState, useEffect } from 'react';
-import { MessageSquare, Code, Share2, Sparkles, ArrowRight, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { MessageSquare, Code, Share2, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChatWidget } from '@/components/ChatWidget';
 import { EmbedCodeDialog } from '@/components/EmbedCodeDialog';
 import { useNavigate } from 'react-router-dom';
 
 const Landing = () => {
-  const [showChatWidget, setShowChatWidget] = useState(false);
   const [showEmbedDialog, setShowEmbedDialog] = useState(false);
   const navigate = useNavigate();
 
@@ -29,14 +26,6 @@ const Landing = () => {
       description: "Create shareable chat links that work anywhere, anytime"
     }
   ];
-
-  useEffect(() => {
-    // Auto-show chat widget after 3 seconds for demo
-    const timer = setTimeout(() => {
-      setShowChatWidget(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -77,7 +66,7 @@ const Landing = () => {
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 animate-bounce-subtle"
-                onClick={() => setShowChatWidget(true)}
+                onClick={() => navigate('/dashboard')}
               >
                 <Sparkles className="mr-2 h-5 w-5" />
                 Try Live Demo
@@ -152,14 +141,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Chat Widget */}
-      {showChatWidget && (
-        <ChatWidget 
-          onClose={() => setShowChatWidget(false)} 
-          position="bottom-right"
-        />
-      )}
 
       {/* Embed Code Dialog */}
       <EmbedCodeDialog 
