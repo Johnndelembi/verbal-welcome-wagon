@@ -63,7 +63,7 @@ const Chat = () => {
 
       {/* Footer */}
       <div className="absolute bottom-6 text-center text-sm text-gray-500">
-        <p>Powered by ChatBot Pro</p>
+        <p>Powered by RafikiBot</p>
       </div>
     </div>
   );
