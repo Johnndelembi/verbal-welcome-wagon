@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { apiService, MessageRequest, MessageResponse } from '@/services/apiService';
 import { useToast } from '@/hooks/use-toast';
+import { ChatBubble } from '@/components/ChatBubble';
 
 export const MessageCenter = () => {
   const [formData, setFormData] = useState<MessageRequest>({
@@ -18,6 +18,11 @@ export const MessageCenter = () => {
   });
   const [response, setResponse] = useState<MessageResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [conversation, setConversation] = useState<Array<{
+    text: string;
+    isUser: boolean;
+    timestamp: Date;
+  }>>([]);
   const { toast } = useToast();
 
   const handleInputChange = (field: keyof MessageRequest, value: string) => {
@@ -36,10 +41,30 @@ export const MessageCenter = () => {
       return;
     }
 
+    // Add user message to conversation
+    const userMessage = {
+      text: formData.message_body,
+      isUser: true,
+      timestamp: new Date()
+    };
+    setConversation(prev => [...prev, userMessage]);
+
     setLoading(true);
     try {
       const result = await apiService.sendMessage(formData);
       setResponse(result);
+      
+      // Add AI response to conversation
+      const aiMessage = {
+        text: result.response,
+        isUser: false,
+        timestamp: new Date()
+      };
+      setConversation(prev => [...prev, aiMessage]);
+      
+      // Clear message input but keep wa_id and name
+      setFormData(prev => ({ ...prev, message_body: '' }));
+      
       toast({
         title: "Success",
         description: "Message sent successfully"
@@ -59,7 +84,10 @@ export const MessageCenter = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Send Message to Assistant</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Send Message to Assistant
+          </CardTitle>
           <CardDescription>
             Send a message to the OpenAI Assistant and get a response
           </CardDescription>
@@ -116,29 +144,39 @@ export const MessageCenter = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Response</CardTitle>
+          <CardTitle>Chat Conversation</CardTitle>
           <CardDescription>
-            Assistant response will appear here
+            Live conversation with the AI assistant
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {response ? (
-            <div className="space-y-4">
-              <Alert>
-                <AlertDescription>
-                  <strong>Status:</strong> {response.status}
-                </AlertDescription>
-              </Alert>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">Response:</p>
-                <p>{response.response}</p>
+          <div className="h-96 overflow-y-auto space-y-3 p-4 bg-gray-50 rounded-lg">
+            {conversation.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="text-center">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>Start a conversation to see messages here</p>
+                </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">
-              Send a message to see the response here
-            </p>
-          )}
+            ) : (
+              conversation.map((message, index) => (
+                <ChatBubble
+                  key={index}
+                  message={message.text}
+                  isUser={message.isUser}
+                  timestamp={message.timestamp}
+                />
+              ))
+            )}
+            {loading && (
+              <ChatBubble
+                message="..."
+                isUser={false}
+                timestamp={new Date()}
+                isLoading={true}
+              />
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
